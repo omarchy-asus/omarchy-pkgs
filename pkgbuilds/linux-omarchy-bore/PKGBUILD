@@ -140,6 +140,7 @@ source=(
   0563-input-fixes-2.patch{,.sig}
   0565-i2c-asue140d-touchpad-100khz.patch{,.sig}
   0566-hid-asus-no-keyboard-init-reports-to-touchpads.patch{,.sig}
+  0567-hid-asus-pass-through-rog-nkey-win-lock-reports.patch
   0601-thunderbolt-updates.patch{,.sig}
   0602-thunderbolt-fixes.patch{,.sig}
   0603-usb-updates.patch{,.sig}
@@ -398,6 +399,7 @@ b2sums=('5326dde778eb945f282740ef0d8765b46fbd198f1209cdfd7b91e5dac1312fc01f8bf0b
         'SKIP'
         '69c1d61ffec58e2d3058d9e9e5fda57a089397d5ad451224f75f1cc2816c7f3fbd650b31bfb5911157fd364f77cb6f720e0825ae3deed8fe9f03576b8f7f1b31'
         'SKIP'
+        'b76651be94c53a9dc4152a512f510217a83133dc18047bba99b5fc11d80752ab371bcda3171c73577411548731cc35f72880116e8071c403672b85e9a60a9f97'
         'e3d60abe9fbfa046409598588dd23a9b16439474595136526e3169ff47982e011ede263d403211f5f5692ac43cf88af5bbf0d11b8e7e959478305c67687c525d'
         'SKIP'
         '1fb895cb1deb1b227515087e12fb0f7fab70b0db25a1a535fa3c294a5455af4d987d02c7c8ff24aed41359055d1383ea90bf9709999382610ed156dbc4069086'
@@ -703,6 +705,7 @@ sha256sums=('12e8d5a973d1ad7c5a5c69882e4022b131ed715db7003fdcd760ddf8c3e51941'
             'SKIP'
             'd15cdfc9b86c40a119a4f21f4fbaec72efebc67677a7386df46a61816d4c6e02'
             'SKIP'
+            '5afe17346c978608cae488ec1d5de69c8c40360b1efec3a6538a7509d2e3d116'
             '1b070eef78ccffb3763b464f5a1b0636936f4c33b0be9b44ab116c5dcbadbebe'
             'SKIP'
             'eb0923de01175707151930d28b1a1a912d24bbc171248fa9f45f57a2125d077a'
