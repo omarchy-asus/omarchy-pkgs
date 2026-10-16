@@ -1,6 +1,9 @@
-# NVIDIA ARM open kernel modules for N1x
+# NVIDIA open kernel modules with pending fixes
 
-ARM-only edge package of NVIDIA's open kernel modules 615.78.08 with N1x display fixes. Based on
+Edge package of NVIDIA's open kernel modules 615.78.08 for aarch64 and x86_64.
+Both architectures carry NVIDIA fixes that are still pending upstream
+(`0008`, `0010`-`0012`); aarch64 also carries the N1x display fixes
+(`0003`-`0007`, `0009`), which only that build applies. Based on
 [Arch's DKMS recipe](https://gitlab.archlinux.org/archlinux/packaging/packages/nvidia-utils/-/commit/f9ae10b379f8b1d0832ec92bca1c12072aa123e9).
 It used to carry Martin Stark's
 [NVIDIA PR #1359](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1359)
@@ -55,9 +58,40 @@ leaked a small slab object per frame while anything on screen moved, gigabytes
 of unreclaimable memory over a few days of uptime. nvkms now frees the record
 on that path. Keep it until NVIDIA merges the fix.
 
+And, on both architectures, Lars Nieradzik's
+[NVIDIA PR #1299](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1299)
+as `0010` and `0011` (both commits, authorship kept): on hybrid laptops the
+firmware sends an NVPCF notification through ACPI on every battery percent,
+and each one woke a runtime-suspended GPU from D3cold for 20-25 s at +6-9 W.
+The notifications are coalesced while the GPU sleeps and replayed after it
+resumes. On an ASUS ROG Zephyrus G16 (GA605KM, RTX 5060 Laptop) on battery
+the stock driver woke for 13 of 13 battery steps, the patched one for 0 of 3.
+Keep it until NVIDIA merges the fix.
+
+And Hans van Essen's
+[NVIDIA PR #1412](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1412)
+as `0012`: after the hibernation image is written, thaw is a no-op, so
+`nv_pci_shutdown()` tore down a GPU that was still suspended and power-off
+hung. It now only clears bus mastering in that state. On the same G16 the
+stock driver never powered off after writing the image; patched, 4 of 4
+hibernations powered off and resumed with no driver errors. Keep it until
+NVIDIA merges the fix.
+
+On x86_64 the package replaces Arch's `nvidia-open-dkms` of the same
+version; it does not touch `nvidia-utils`, which still comes from Arch.
+Machines with the stock `linux` kernel and Arch's prebuilt `nvidia-open`
+are not affected: this package conflicts with it and is only pulled in where
+`nvidia-open-dkms` is installed, as Omarchy's NVIDIA setup does.
+
 Requires `[omarchy]` before `[extra]` and matching `nvidia-utils=615.78.08`.
 Update both NVIDIA packages together; automatic version tracking is disabled.
 
-Remove this recipe and the published package/database entry once a fixed
-Arch Linux ARM driver is validated. A stale package in the earlier repository
+On x86_64, drop `0010`-`0012` once NVIDIA ships them. This package pins
+`nvidia-utils=615.78.08`, and on x86_64 `nvidia-utils` comes from Arch: once a
+channel's Arch snapshot carries a newer `nvidia-utils`, `pacman -Syu` stops
+with a broken dependency until this recipe is bumped to the same version.
+Bump it before, or together with, the mirror snapshot that moves the driver.
+
+Remove the aarch64 part of this recipe and the published package/database
+entry once a fixed Arch Linux ARM driver is validated. A stale package in the earlier repository
 can block driver updates.

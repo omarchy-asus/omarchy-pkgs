@@ -1,0 +1,65 @@
+From 38280861cb89dd791c8360e5797c38d3259b347d Mon Sep 17 00:00:00 2001
+From: Hans van Essen <hans@expaso.nl>
+Date: Thu, 1 Oct 2026 22:24:23 +0200
+Subject: [PATCH 3/3] nvidia: skip teardown in nv_pci_shutdown() while GPU is
+ hibernate-suspended
+
+With the documented hibernation setup (NVreg_PreserveVideoMemoryAllocations=1
+plus nvidia-hibernate.service), the system hangs after the hibernation image
+has been written and never powers off. The last console line is
+"[nvidia-drm] Unloading driver".
+
+Sequence:
+  1. nvidia-sleep.sh writes "hibernate" to /proc/driver/nvidia/suspend:
+     nv_set_system_power_state() takes nv_system_pm_lock for write and
+     suspends the GPU (NV_FLAG_SUSPENDED).
+  2. The kernel freezes devices (nv_pmops_freeze), creates the snapshot and
+     thaws devices to write the image. nv_pmops_thaw() is a no-op, so the GPU
+     stays suspended and nv_system_pm_lock stays write-locked.
+  3. After the image is written, HibernateMode=shutdown (or reboot, or a
+     failed ACPI S4 entry) calls kernel_power_off() -> device_shutdown() ->
+     nv_pci_shutdown() -> nv_pci_remove_helper() -> nvidia_modeset_remove()
+     -> nv-drm unload, i.e. a full driver teardown against a suspended GPU.
+     This never completes.
+
+The machine is about to lose power and the GPU state was already saved by
+the suspend path, so a teardown is neither needed nor possible here. When
+the device is still NV_FLAG_SUSPENDED, only clear bus mastering and return.
+Normal shutdown and reboot are unaffected because the flag is not set then.
+
+Tested on an RTX 5080 Laptop GPU (GB203, ASUS GU605CW) with 615.71.09 and
+Linux 7.3-rc5: before, hibernation hung at "Unloading driver" every time
+(also with 610.57.04); after, the system powers off right after the image is
+written and resumes normally.
+
+Signed-off-by: Hans van Essen <hans@expaso.nl>
+---
+ kernel-open/nvidia/nv-pci.c | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/kernel-open/nvidia/nv-pci.c b/kernel-open/nvidia/nv-pci.c
+index 48d8b78..176d56e 100644
+--- a/kernel-open/nvidia/nv-pci.c
++++ b/kernel-open/nvidia/nv-pci.c
+@@ -2978,6 +2978,18 @@ nv_pci_shutdown(struct pci_dev *pci_dev)
+         return;
+     }
+ 
++    /*
++     * Hibernation power-off: thaw is a no-op, so the GPU is still suspended
++     * (procfs hibernate holds nv_system_pm_lock) and a full teardown hangs.
++     */
++    if (nvl->nv_state.flags & NV_FLAG_SUSPENDED)
++    {
++#ifdef CONFIG_PCI
++        pci_clear_master(pci_dev);
++#endif
++        return;
++    }
++
+ #if defined(CONFIG_PM_DEVFREQ)
+     nv_pci_tegra_unregister_devfreq(pci_dev);
+ #endif
+-- 
+2.55.0
+
