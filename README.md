@@ -10,7 +10,8 @@ hardware fixes for Omarchy. It was developed on an ROG Zephyrus G16 GA605 (Ryzen
 RTX 50-series laptop GPU).
 
 Every package takes upstream's pkgrel plus `.1` (for example `615.78.08-1.1`). That sorts just
-above the stock build it replaces. When upstream moves past our base version, the package
+above the stock build it replaces. Local helpers with no upstream build (such as `asus-rog-nkey-winlock`)
+use a plain pkgrel instead. When upstream moves past our base version, the package
 is rebuilt with the patches rebased, or it is removed from the repo so the stock build flows
 through. A stale pin is never kept.
 
@@ -27,6 +28,7 @@ through. A stale pin is never kept.
 
 | hyprland, hyprpm | 0.56.2-4.1 | render offset after an HDMI replug (fixed upstream on main, unreleased) |
 | linux-omarchy, linux-omarchy-headers | 7.2.8-9.1 | hid-asus ROG N-Key Win-lock pass-through; **plus an EXPERIMENTAL, default-off scheduler series** (Zen 5c-first soft park) for GA605KM battery testing, compile-tested only, nothing enables it; see `recipes/linux-omarchy/NOTES.md` |
+| asus-rog-nkey-winlock, asus-zephyrus-g16-control | 0.1.0-1 | local, not an upstream rebuild: `g16-winlock` (Fn+Super Win-key lock OSD / auto-unlock) with its hidraw udev rule and user unit, and the G16 Control bar widget that holds its switch; nothing is enabled by default, and `watch` needs the linux-omarchy 0568 patch; see `recipes/asus-rog-nkey-winlock/README.md` |
 
 ## Layout
 
