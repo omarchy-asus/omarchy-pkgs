@@ -27,7 +27,7 @@ through. A stale pin is never kept.
 
 | hyprland, hyprpm | 0.56.2-4.1 | render offset after an HDMI replug (fixed upstream on main, unreleased) |
 | linux-omarchy, linux-omarchy-headers | 7.2.8-9.1 | hid-asus ROG N-Key Win-lock pass-through; **plus an EXPERIMENTAL, default-off scheduler series** (Zen 5c-first soft park) for GA605KM battery testing, compile-tested only, nothing enables it; see `recipes/linux-omarchy/NOTES.md` |
-| omarchy-asus-g16, omarchy-asus-g16-nvidia-powerd | 1.0.0-1 (draft, not published) | new package: ships the fork's GA605KM touchpad-wake udev rule and `HibernateMode=shutdown` drop-in byte-identical under `/usr/lib`; the nvidia-powerd start-limit drop-in is an opt-in split package; see `recipes/omarchy-asus-g16/README.md` |
+| omarchy-asus-g16 | 1.0.0-1 (not published yet) | new package: ships the fork's GA605KM touchpad-wake udev rule and `HibernateMode=shutdown` drop-in byte-identical under `/usr/lib` plus the nvidia-powerd start-limit drop-in (Dynamic Boost after the 5th charger plug-in); see `recipes/omarchy-asus-g16/README.md` |
 
 ## Layout
 
