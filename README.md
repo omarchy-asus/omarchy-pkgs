@@ -30,7 +30,10 @@ through. A stale pin is never kept.
 
 ## Layout
 
+- `bin/omarchy-asus-setup`: the one-step setup a user runs on a G16 (`--dry-run`, `--uninstall`). See LAPTOP-SETUP.md.
 - `recipes/<pkg>/`: PKGBUILDs and patches.
+- `recipes/omarchy-asus-keyring/`: keyring package (`pacman-key --populate omarchy-asus`), packaged like omarchy-keyring.
+  Its `omarchy-asus.gpg` is a copy of `keys/omarchy-asus.asc`.
 - `build/pacman.conf`: package sources for the build chroot (the Omarchy stable snapshot plus `[omarchy]`).
 - `bin/mkchroot`: creates or updates the clean devtools chroot.
 - `bin/build-pkg recipes/X`: `makechrootpkg -c -u` at idle CPU and IO priority.
