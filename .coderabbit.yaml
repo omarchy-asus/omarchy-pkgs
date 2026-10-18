@@ -1,0 +1,9 @@
+# CodeRabbit on the omarchy-asus fork. The repo's default branch is upstream's master,
+# so the omarchy-asus-repo branch has to be enabled explicitly; bin/auto-update merges
+# its PRs only after CodeRabbit has reviewed the head with no unresolved threads.
+reviews:
+  auto_review:
+    enabled: true
+    drafts: false
+    base_branches:
+      - omarchy-asus-repo

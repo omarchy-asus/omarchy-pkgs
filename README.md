@@ -30,11 +30,14 @@ through. A stale pin is never kept.
 
 ## Layout
 
-- `recipes/<pkg>/`: PKGBUILDs and patches.
+- `recipes/<pkg>/`: PKGBUILDs and patches. `DELTA` declares how the recipe differs from upstream
+  (see `bin/rebase-recipe --help`); `LOCAL_ONLY` marks a package with no upstream build.
 - `build/pacman.conf`: package sources for the build chroot (the Omarchy stable snapshot plus `[omarchy]`).
 - `bin/mkchroot`: creates or updates the clean devtools chroot.
 - `bin/build-pkg recipes/X`: `makechrootpkg -c -u` at idle CPU and IO priority.
 - `bin/publish FILES`: signs the packages and runs `repo-add --sign --verify --remove`.
 - `bin/unpublish PKG`: drops a package so the stock build flows through.
-- `bin/sync-release`: mirrors the local repo to the `x86_64` GitHub release.
-- `bin/check-upstream [--json]`: compares each package with the version upstream currently ships and the state of the upstream PRs listed in `recipes/*/UPSTREAM_PRS`. Exits 10 when something needs action.
+- `bin/sync-release`: mirrors the local repo to the `x86_64` GitHub release. It uploads only new or changed files and refuses to overwrite a package filename with different bytes. It also runs a PII scan of new packages and the db before uploading.
+- `bin/check-upstream [--json]`: compares each package with the version upstream currently ships, checks exact-version dependencies (`nvidia-utils=...`), and reads the state of the upstream PRs listed in `recipes/*/UPSTREAM_PRS`. Exits 10 when something needs action.
+- `bin/rebase-recipe`: rebuilds a recipe from a new upstream release plus its `DELTA`, then verifies it with `makepkg --nobuild`.
+- `bin/auto-update`: the daily pipeline. When upstream moves it opens a rebase PR, builds it in the chroot and waits for CodeRabbit and an agent review, then merges and publishes. If the rebase fails, it unpublishes the package instead. `systemd/` has the units and `bin/install-auto-update` installs them; see [systemd/README.md](systemd/README.md) for the design and the privilege model.
