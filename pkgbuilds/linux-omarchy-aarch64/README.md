@@ -2,7 +2,7 @@
 
 The `linux-omarchy` kernel for aarch64, with NVIDIA N1x (RTX Spark) and Snapdragon laptop support added. This folder builds the packages `linux-omarchy` and `linux-omarchy-headers` for aarch64, as the `linux-omarchy` folder does for x86_64; until 7.2.8-8 they were named `linux-omarchy-n1x` and `linux-omarchy-n1x-headers`, which the new ones replace on upgrade. The folder's name is the recipe's `pkgbase`, which is how the build and publish tooling keeps the two recipes' files apart.
 
-It carries the same kernel.org source and signed Omarchy patch set as `linux-omarchy` 7.2.8-5, plus N1x topic patches numbered 1000 and up. Since 7.2.8-5 `linux-omarchy` is a meta package for `linux-omarchy-bore`, so the shared patches, their signatures and the BORE and ADIOS schedulers come from `linux-omarchy-bore`, byte for byte, including its BORE rebases of the `0121`–`0144` scheduler patches. The intent is to fold these into `linux-omarchy` itself once it builds for aarch64; until then this is the kernel Omarchy installs on N1x machines (`install/hardware/n1x.sh` in omarchy), replacing NVIDIA's 7.0-based `linux-n1x`.
+It carries the same kernel.org source and signed Omarchy patch set as `linux-omarchy` 7.2.8-5, plus N1x topic patches numbered 1000 and up. `linux-omarchy` is the BORE build (it was `linux-omarchy-bore` until 7.2.8-9, which is now a transitional package), so the shared patches, their signatures and the BORE and ADIOS schedulers come from `linux-omarchy`, byte for byte, including its BORE rebases of the `0121`–`0144` scheduler patches. The intent is to fold these into `linux-omarchy` itself once it builds for aarch64; until then this is the kernel Omarchy installs on N1x machines (`install/hardware/n1x.sh` in omarchy), replacing NVIDIA's 7.0-based `linux-n1x`.
 
 The `pkgrel` counts N1x revisions of this package and starts again at 1 when the kernel version changes. On 7.2.5 it was `6.1` to `6.9` while it tracked `linux-omarchy`'s release; the ninth revision became `9`, `10` added the Dell XPS 16 patches, `11` brought a dock's displays back after a failed DisplayPort tunnel, `12` stopped the clock during suspend-to-idle, `13` brought NVIDIA's device sleep patches from 1022.23, `14` let keyboard and touchpad interrupts wake the system from the platform's deepest sleep, and `15` brought audio and UCSI fixes from upstream and turned kexec handover off by default. `7.2.8-1` moves to 7.2.8 and `linux-omarchy` 7.2.8-5's patch set, `2` closes a SoundWire interrupt race that could hang the boot, `3` stops `cppc_cpufreq` registering its artificial energy model, so EAS no longer packs the desktop onto the A725 cores, `4` ships the Snapdragon laptops' device trees and resets the Iris AHB bridge before hardware mode, `5` builds SCMI CPU frequency scaling in, which the Snapdragon laptops need, `6` lets suspend-to-idle reach the platform's deepest idle state, which brings sleep from 6-15 W to under 1 W, `7` stops reclaiming the GPU's reserved memory, which the firmware now sizes itself, `8` takes the name `linux-omarchy`, `9` registers `cppc_cpufreq`'s artificial energy model again, so that power-profiles-daemon's RTX Spark driver can turn EAS on and off with the governor, as NVIDIA designed it, `10` keeps a dock's tunnels through suspend-to-idle, so its USB devices and displays come back on resume, and `11` spaces out a dock's DisplayPort teardowns, so the GPU sees both monitors leave when a two-monitor dock is unplugged.
 
@@ -69,9 +69,13 @@ Patches 1090–1095 are NVIDIA's SAUCE from `Ubuntu-nvidia-7.0-7.0.0-1022.23_24.
 
 `1096` (0f0aeba49253, NVIDIA PR #635, merged after 1022.23) clears the MT8901 EINT event mask for every interrupt armed as a wake source, not only the ACPI event line, so the SPM sees keyboard and touchpad wakes. Without it the platform's deepest sleep state could only be left by the ACPI event line, and a key press did not wake it.
 
+`1097` keeps the generic ACPI xHCI path when firmware marks both supported SSPM mailbox devices absent. The DGX Spark uses the same NVDA8000/NVDA8001 controller IDs as N1x laptops, but can hide that mailbox; requiring Power Wrap there prevents all USB controllers from starting. A present mailbox still requires successful Power Wrap initialization.
+
 NVIDIA's companion watchdog rework (280db0e8cf30) is not carried; it replaces the sbsa_gwdt sleep patch already in `1020` and needs the upstream `early_enable` parameter (1376a013a1, linux-next) first.
 
 The USB4 driver binds only with `power_wrap_drv.usb4_release=0` on the command line. Omarchy sets that together with the PCI hotplug padding.
+
+`1098` checks for a firmware-present SSPM mailbox before arming the USB4 resource-release hook or probing the SSPM-only ACPI SPI and DSP power drivers. GB10 firmware can describe those devices with SSPM absent. The SPI device-tree path and Power Wrap's other setup are unchanged; a present mailbox that fails still reports its existing errors. This does not enable SPI, audio DSP or USB4 power management on a machine without that interface.
 
 SAUCE that was left out:
 
@@ -97,7 +101,7 @@ Two differences from Arch Linux ARM's kernel matter on these laptops. Omarchy's 
 
 ## Config
 
-`config.aarch64` started from NVIDIA's `arm64-nvidia` annotations for the 1021.21 tree, went through `olddefconfig` on 7.2.5, and then had `linux-omarchy`'s behavioral choices applied (preemption, LSM list, zswap and zram defaults, THP, built-in Btrfs, schedutil, I/O schedulers, binder off, no Canonical trusted keys). It sets `linux-omarchy-bore`'s scheduler options too: `SCHED_BORE=y`, `MIN_BASE_SLICE_NS=2000000` and `MQ_IOSCHED_ADIOS=m`.
+`config.aarch64` started from NVIDIA's `arm64-nvidia` annotations for the 1021.21 tree, went through `olddefconfig` on 7.2.5, and then had `linux-omarchy`'s behavioral choices applied (preemption, LSM list, zswap and zram defaults, THP, built-in Btrfs, schedutil, I/O schedulers, binder off, no Canonical trusted keys). It sets `linux-omarchy`'s BORE scheduler options too: `SCHED_BORE=y`, `MIN_BASE_SLICE_NS=2000000` and `MQ_IOSCHED_ADIOS=m`.
 
 On 7.2.8 it went through `olddefconfig` again and took the architecture-independent changes `linux-omarchy` made since 7.2.5-6: `RESET_ATTACK_MITIGATION` and `SWIOTLB_DYNAMIC` off, `IMA_WRITE_POLICY` and `IMA_READ_POLICY` on. New symbols kept their defaults (`ACPI_BATTERY_HOOKS=y`; the new hwmon, haptics and camera drivers stay off). `ARCH_MMAP_RND_BITS` stays at the arm64 maximum of 33: `linux-omarchy` moved x86's value to that architecture's default, which says nothing about arm64.
 
@@ -105,10 +109,10 @@ On 7.2.8 it went through `olddefconfig` again and took the architecture-independ
 
 ## Building
 
-The package is large and hardware-specific, so unscoped repository builds skip it. Build it explicitly, natively on aarch64 where possible:
+CI builds it on its pull request, on Namespace's aarch64 runners. `skip_build` keeps the large, hardware-specific package out of an unscoped local `bin/build`; to build it locally, name it, natively on aarch64 where possible:
 
 ```bash
-bin/repo build --arch aarch64 --package linux-omarchy-aarch64
+bin/build --arch aarch64 --package linux-omarchy-aarch64
 ```
 
 The build produces `Image`, modules and the Snapdragon laptops' device trees; N1x boots through ACPI and needs none. It installs the raw arm64 `Image` as `vmlinuz` for Limine's aarch64 Linux protocol.
