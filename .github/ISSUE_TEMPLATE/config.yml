@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Agents - file with bin/issue
+    url: https://github.com/rdoupe-omarchy/omarchy-asus-pkgs/blob/omarchy-asus-repo/AGENTS.md
+    about: Agents should use bin/issue (duplicate check + PII scan) instead of this form.
