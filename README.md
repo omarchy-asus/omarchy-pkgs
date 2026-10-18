@@ -10,9 +10,9 @@ hardware fixes for Omarchy. It was developed on an ROG Zephyrus G16 GA605 (Ryzen
 RTX 50-series laptop GPU).
 
 Every package takes upstream's pkgrel plus `.1` (for example `615.78.08-1.1`). That sorts just
-above the stock build it replaces. When upstream moves past our base version, the package
-is rebuilt with the patches rebased, or it is removed from the repo so the stock build flows
-through. A stale pin is never kept.
+above the stock build it replaces; a rebuild of ours on the same base bumps the suffix
+(`1.2`). When upstream moves past our base version, the package is rebuilt with the patches
+rebased, or it is removed from the repo so the stock build flows through. A stale pin is never kept.
 
 - **Install:** see [LAPTOP-SETUP.md](LAPTOP-SETUP.md).
 - **Packages:** the [`x86_64` release](https://github.com/rdoupe-omarchy/omarchy-asus-pkgs/releases/tag/x86_64)
@@ -23,7 +23,7 @@ through. A stale pin is never kept.
 
 | package | version | patches |
 |---|---|---|
-| nvidia-open-dkms | 615.78.08-1.1 | NVIDIA/open-gpu-kernel-modules [#1412](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1412) (no hang at power-off after hibernate), [#1299](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1299) (dGPU no longer wakes from D3cold on every battery change) |
+| nvidia-open-dkms | 615.78.08-1.2 | NVIDIA/open-gpu-kernel-modules [#1412](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1412) (no hang at power-off after hibernate), [#1299](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1299) (dGPU no longer wakes from D3cold on every battery change), [#1368](https://github.com/NVIDIA/open-gpu-kernel-modules/pull/1368) (nvidia-modeset no longer leaks a slab object per composited frame) |
 
 | hyprland, hyprpm | 0.56.2-4.1 | render offset after an HDMI replug (fixed upstream on main, unreleased) |
 | linux-omarchy, linux-omarchy-headers | 7.2.8-9.1 | hid-asus ROG N-Key Win-lock pass-through; **plus an EXPERIMENTAL, default-off scheduler series** (Zen 5c-first soft park) for GA605KM battery testing, compile-tested only, nothing enables it; see `recipes/linux-omarchy/NOTES.md` |
